@@ -28,6 +28,7 @@ def create_indexes():
     db.employees.create_index([("department", ASCENDING), ("emp_code", ASCENDING)], name="department_employee_code")
     db.employees.create_index([("department", ASCENDING), ("joined_on", ASCENDING), ("emp_code", ASCENDING)], name="department_joined_code")
     db.employees.create_index([("joined_on", ASCENDING)], name="employee_joined_date")
+    db.employees.create_index([("email_key", ASCENDING)], unique=True, partialFilterExpression={"email_key": {"$type": "string"}}, name="uq_employee_email_key")
     db.employee_removals.create_index([("emp_code", ASCENDING)], unique=True, name="uq_removed_employee_code")
     db.attendance_logs.create_index([("emp_code", ASCENDING), ("date", ASCENDING)], unique=True, name="uq_attendance_employee_date")
     db.attendance_logs.create_index([("date", DESCENDING), ("emp_code", ASCENDING)], name="attendance_date_code")
@@ -210,12 +211,18 @@ def health():
 @app.post("/employees", status_code=201)
 def create_employee(body: EmployeeIn):
     doc = body.model_dump()
+    email_key = body.email.casefold()
+    legacy_email = {"$regex": f"^{re.escape(body.email)}$", "$options": "i"}
+    if db.employees.find_one({"$or": [{"email_key": email_key}, {"email": legacy_email}]}, {"_id": 1}):
+        fail(409, "email already belongs to an employee")
+    doc["email_key"] = email_key
     doc["created_at"] = datetime.now(UTC)
     try:
         db.employees.insert_one(doc)
     except DuplicateKeyError:
-        fail(409, "emp_code already exists")
+        fail(409, "emp_code or email already belongs to an employee")
     doc.pop("_id", None)
+    doc.pop("email_key", None)
     doc["created_at"] = epoch(doc["created_at"])
     return doc
 
@@ -225,7 +232,7 @@ def list_employees(department: str | None = None, page: int = Query(1, ge=1), pa
     removed_codes = db.employee_removals.distinct("emp_code")
     q = {"emp_code": {"$nin": removed_codes}}
     if department is not None: q["department"] = department
-    items = list(db.employees.find(q, {"_id": 0}).sort("emp_code", ASCENDING).skip((page-1)*page_size).limit(page_size))
+    items = list(db.employees.find(q, {"_id": 0, "email_key": 0}).sort("emp_code", ASCENDING).skip((page-1)*page_size).limit(page_size))
     for x in items: x["created_at"] = epoch(x.get("created_at"))
     return {"items": items, "total": db.employees.count_documents(q), "page": page, "page_size": page_size}
 

@@ -58,7 +58,7 @@ export default function Employees() {
       if (page === 1 && !department) load();
     } catch (reason) {
       setMessageError(true);
-      setMessage(reason instanceof ApiError ? `${reason.message}${reason.status === 409 ? " Try a different employee code." : ""}` : "Unable to create employee.");
+      setMessage(reason instanceof ApiError ? `${reason.message}${reason.status === 409 ? " Check the employee code and email address." : ""}` : "Unable to create employee.");
     } finally { setSaving(false); }
   };
 

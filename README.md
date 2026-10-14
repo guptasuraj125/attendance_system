@@ -9,6 +9,7 @@ The API accepts employee and punch events, computes attendance values consistent
 ## Features
 
 - Employee creation and filtered, ordered pagination.
+- Employee emails are unique, case-insensitively; duplicate submissions return HTTP 409.
 - Employee removal from the active directory with removal audit timestamp; employee and attendance records are retained.
 - Punch in and punch out with IST/overnight handling and derived fields.
 - Indexed attendance search and optimistic, append-only regularization history.

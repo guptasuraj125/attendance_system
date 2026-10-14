@@ -116,8 +116,9 @@ paths:
       summary: Create an employee
       description: |
         The client supplies `emp_code` (the customer's own code). It must be unique, **enforced by a database unique
-        index** (concurrent duplicate creates must yield exactly one 201 and the rest 409). `shift_start` must differ
-        from `shift_end`. `created_at` is set by the server. There is no endpoint to change an `emp_code`.
+        index** (concurrent duplicate creates must yield exactly one 201 and the rest 409). Email addresses must also
+        be unique, compared case-insensitively; concurrent duplicate emails yield exactly one 201 and the rest 409.
+        `shift_start` must differ from `shift_end`. `created_at` is set by the server. There is no endpoint to change an `emp_code`.
       requestBody:
         required: true
         content:
