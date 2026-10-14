@@ -1,0 +1,21 @@
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Python local artifacts
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.venv/
+.venv-*/
+venv/
+
+# Frontend build and dependency artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+
+# Local logs
+*.log
